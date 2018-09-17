@@ -79,7 +79,7 @@ class LEVELDB_EXPORT Iterator {
   // not abstract and therefore clients should not override it.
   using CleanupFunction = void (*)(void* arg1, void* arg2);
   void RegisterCleanup(CleanupFunction function, void* arg1, void* arg2);
-
+//cleanup函数是用链表存储的
  private:
   // Cleanup functions are stored in a single-linked list.
   // The list's head node is inlined in the iterator.

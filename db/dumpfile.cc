@@ -34,7 +34,7 @@ bool GuessType(const std::string& fname, FileType* type) {
   uint64_t ignored;
   return ParseFileName(basename, &ignored, type);
 }
-
+//向文件里写corruption日志
 // Notified when log reader encounters corruption.
 class CorruptionReporter : public log::Reader::Reporter {
  public:
@@ -48,7 +48,8 @@ class CorruptionReporter : public log::Reader::Reporter {
     dst_->Append(r);
   }
 };
-
+//从fname制定的文件中，读取record并填充record和scratch，然后执行func
+//func如下面的 WriteBatchPrinter函数
 // Print contents of a log file. (*func)() is called on every record.
 Status PrintLogContents(Env* env, const std::string& fname,
                         void (*func)(uint64_t, Slice, WritableFile*),
@@ -69,7 +70,7 @@ Status PrintLogContents(Env* env, const std::string& fname,
   delete file;
   return Status::OK();
 }
-
+//向file里写write和delete日志
 // Called on every item found in a WriteBatch.
 class WriteBatchItemPrinter : public WriteBatch::Handler {
  public:
@@ -105,6 +106,7 @@ static void WriteBatchPrinter(uint64_t pos, Slice record, WritableFile* dst) {
     return;
   }
   WriteBatch batch;
+  //record的解析，解析seq，以及内部的多个item
   WriteBatchInternal::SetContents(&batch, record);
   r += "sequence ";
   AppendNumberTo(&r, WriteBatchInternal::Sequence(&batch));
@@ -142,7 +144,7 @@ static void VersionEditPrinter(uint64_t pos, Slice record, WritableFile* dst) {
 Status DumpDescriptor(Env* env, const std::string& fname, WritableFile* dst) {
   return PrintLogContents(env, fname, VersionEditPrinter, dst);
 }
-
+//一个file就是一个ssttable
 Status DumpTable(Env* env, const std::string& fname, WritableFile* dst) {
   uint64_t file_size;
   RandomAccessFile* file = nullptr;
@@ -168,6 +170,7 @@ Status DumpTable(Env* env, const std::string& fname, WritableFile* dst) {
   ro.fill_cache = false;
   Iterator* iter = table->NewIterator(ro);
   std::string r;
+  //iter必须seektofisrt才指向有效值
   for (iter->SeekToFirst(); iter->Valid(); iter->Next()) {
     r.clear();
     ParsedInternalKey key;

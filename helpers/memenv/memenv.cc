@@ -52,7 +52,7 @@ class FileState {
   }
 
   uint64_t Size() const { return size_; }
-
+//mem被当做了文件系统，数据存放在vector的blocks_中。
   Status Read(uint64_t offset, size_t n, Slice* result, char* scratch) const {
     if (offset > size_) {
       return Status::IOError("Offset greater than file size.");
@@ -65,11 +65,12 @@ class FileState {
       *result = Slice();
       return Status::OK();
     }
-
+//mem中的数据是一个block一个block的存放在blocks_中。所以
+//查询数据需要先计算blockidx和blockoffset
     assert(offset / kBlockSize <= std::numeric_limits<size_t>::max());
     size_t block = static_cast<size_t>(offset / kBlockSize);
     size_t block_offset = offset % kBlockSize;
-
+//不会超过这个first block
     if (n <= kBlockSize - block_offset) {
       // The requested bytes are all in the first block.
       *result = Slice(blocks_[block] + block_offset, n);
@@ -91,11 +92,12 @@ class FileState {
       block++;
       block_offset = 0;
     }
-
+//scratch还是指针之前的值，函数中通过dst=scratch并改变dst来更新数据。
     *result = Slice(scratch, n);
     return Status::OK();
   }
-
+//size_为当前所有blocks中数据总大小，处以blocksize得到最后一个block中
+//数据的偏移。
   Status Append(const Slice& data) {
     const char* src = data.data();
     size_t src_len = data.size();
@@ -116,6 +118,7 @@ class FileState {
       if (avail > src_len) {
         avail = src_len;
       }
+      //从src处拿avail数据copy到最后一个blokc的offset偏移处。
       memcpy(blocks_.back() + offset, src, avail);
       src_len -= avail;
       src += avail;
@@ -149,7 +152,7 @@ class FileState {
 
   enum { kBlockSize = 8 * 1024 };
 };
-
+//filestate为存储接口，存在内存中
 class SequentialFileImpl : public SequentialFile {
  public:
   explicit SequentialFileImpl(FileState* file) : file_(file), pos_(0) {

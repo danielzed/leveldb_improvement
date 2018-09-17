@@ -19,7 +19,7 @@ void AppendNumberTo(std::string* str, uint64_t num) {
   snprintf(buf, sizeof(buf), "%llu", (unsigned long long) num);
   str->append(buf);
 }
-
+//string除了空格和~之间的，都要转成16进制添加到str后面。
 void AppendEscapedStringTo(std::string* str, const Slice& value) {
   for (size_t i = 0; i < value.size(); i++) {
     char c = value[i];
@@ -45,7 +45,8 @@ std::string EscapeString(const Slice& value) {
   AppendEscapedStringTo(&r, value);
   return r;
 }
-
+//将in对应的data转换成10进制数，同时保证不超过max最大值
+//只转换in.size()个字符，in.data()之后超过size的字符不管。
 bool ConsumeDecimalNumber(Slice* in, uint64_t* val) {
   // Constants that will be optimized away.
   constexpr const uint64_t kMaxUint64 = std::numeric_limits<uint64_t>::max();

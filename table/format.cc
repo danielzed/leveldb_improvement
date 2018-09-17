@@ -19,7 +19,7 @@ void BlockHandle::EncodeTo(std::string* dst) const {
   PutVarint64(dst, offset_);
   PutVarint64(dst, size_);
 }
-
+//input中为每个entry存放的block的偏移和大小
 Status BlockHandle::DecodeFrom(Slice* input) {
   if (GetVarint64(input, &offset_) &&
       GetVarint64(input, &size_)) {
@@ -28,7 +28,7 @@ Status BlockHandle::DecodeFrom(Slice* input) {
     return Status::Corruption("bad block handle");
   }
 }
-
+//将metaindexhandle,indexhandle,magicnum编码到dst
 void Footer::EncodeTo(std::string* dst) const {
   const size_t original_size = dst->size();
   metaindex_handle_.EncodeTo(dst);
@@ -39,7 +39,7 @@ void Footer::EncodeTo(std::string* dst) const {
   assert(dst->size() == original_size + kEncodedLength);
   (void)original_size;  // Disable unused variable warning.
 }
-
+//从input的data中解码出metaindexhandle,indexhandle,magicnum
 Status Footer::DecodeFrom(Slice* input) {
   const char* magic_ptr = input->data() + kEncodedLength - 8;
   const uint32_t magic_lo = DecodeFixed32(magic_ptr);
@@ -61,7 +61,12 @@ Status Footer::DecodeFrom(Slice* input) {
   }
   return result;
 }
-
+//buf长度为blockhandle的长度加上trailer的最大长度，trailer为每个block所有entry后面
+//存放所有重启点的字段。trailer的重启点的结尾为重启点的个数。
+//从file中handle指向的block读取数据，填充到contents中
+//取出存放的crc校验码，于data的前n位计算出的校验码进行比较
+//const uint32_t crc = crc32c::Unmask(DecodeFixed32(data + n + 1));
+//    const uint32_t actual = crc32c::Value(data, n + 1);
 Status ReadBlock(RandomAccessFile* file,
                  const ReadOptions& options,
                  const BlockHandle& handle,

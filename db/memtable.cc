@@ -17,7 +17,8 @@ static Slice GetLengthPrefixedSlice(const char* data) {
   p = GetVarint32Ptr(p, p + 5, &len);  // +5: we assume "p" is not corrupted
   return Slice(p, len);
 }
-
+//跳表构造的时候，需要传入comparator和arena内存分配器
+//并且memtable保存引用计数
 MemTable::MemTable(const InternalKeyComparator& cmp)
     : comparator_(cmp),
       refs_(0),
@@ -29,7 +30,8 @@ MemTable::~MemTable() {
 }
 
 size_t MemTable::ApproximateMemoryUsage() { return arena_.MemoryUsage(); }
-
+//keycomparator为仿函数，可以通过STL算法，对数据结构进行排序。
+//排序依据是aptr和bptr的长度。
 int MemTable::KeyComparator::operator()(const char* aptr, const char* bptr)
     const {
   // Internal keys are encoded as length-prefixed strings.
@@ -41,13 +43,14 @@ int MemTable::KeyComparator::operator()(const char* aptr, const char* bptr)
 // Encode a suitable internal key target for "target" and return it.
 // Uses *scratch as scratch space, and the returned pointer will point
 // into this scratch space.
+//将target slice的长度和数据编码进scratch。
 static const char* EncodeKey(std::string* scratch, const Slice& target) {
   scratch->clear();
   PutVarint32(scratch, target.size());
   scratch->append(target.data(), target.size());
   return scratch->data();
 }
-
+//生成iter的时候，需要传入iter对应的数据结构，即跳表
 class MemTableIterator: public Iterator {
  public:
   explicit MemTableIterator(MemTable::Table* table) : iter_(table) { }
@@ -73,6 +76,7 @@ class MemTableIterator: public Iterator {
   // No copying allowed
   MemTableIterator(const MemTableIterator&);
   void operator=(const MemTableIterator&);
+  
 };
 
 Iterator* MemTable::NewIterator() {
@@ -94,6 +98,7 @@ void MemTable::Add(SequenceNumber s, ValueType type,
       VarintLength(internal_key_size) + internal_key_size +
       VarintLength(val_size) + val_size;
   char* buf = arena_.Allocate(encoded_len);
+  //向buf中编码进internal_key_size，然后编码key值和type值。
   char* p = EncodeVarint32(buf, internal_key_size);
   memcpy(p, key.data(), key_size);
   p += key_size;
@@ -109,6 +114,7 @@ bool MemTable::Get(const LookupKey& key, std::string* value, Status* s) {
   Slice memkey = key.memtable_key();
   Table::Iterator iter(&table_);
   iter.Seek(memkey.data());
+  //memtable跳表中找到了对应的key，解析数据
   if (iter.Valid()) {
     // entry format is:
     //    klength  varint32

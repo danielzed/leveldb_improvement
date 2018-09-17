@@ -38,7 +38,7 @@
 namespace leveldb {
 
 const int kNumNonTableCacheFiles = 10;
-
+//执行writebatck的工作者，多线程
 // Information kept for every waiting writer
 struct DBImpl::Writer {
   Status status;
@@ -49,7 +49,9 @@ struct DBImpl::Writer {
 
   explicit Writer(port::Mutex* mu) : cv(mu) { }
 };
-
+//compaction表示压缩任务？
+//会删除所有seqnum特别小的entry
+//有输出
 struct DBImpl::CompactionState {
   Compaction* const compaction;
 
@@ -65,7 +67,7 @@ struct DBImpl::CompactionState {
     uint64_t file_size;
     InternalKey smallest, largest;
   };
-  std::vector<Output> outputs;
+  std::vector<Output> outputs; 
 
   // State kept for output being generated
   WritableFile* outfile;
@@ -82,13 +84,15 @@ struct DBImpl::CompactionState {
         total_bytes(0) {
   }
 };
-
+//把ptr指向的值限定在maxval和minval之间
 // Fix user-supplied options to be reasonable
 template <class T, class V>
 static void ClipToRange(T* ptr, V minvalue, V maxvalue) {
   if (static_cast<V>(*ptr) > maxvalue) *ptr = maxvalue;
   if (static_cast<V>(*ptr) < minvalue) *ptr = minvalue;
 }
+//sanitize消毒
+//对options src进行设置（范围约束，filter设置）
 Options SanitizeOptions(const std::string& dbname,
                         const InternalKeyComparator* icmp,
                         const InternalFilterPolicy* ipolicy,
@@ -104,6 +108,7 @@ Options SanitizeOptions(const std::string& dbname,
     // Open a log file in the same directory as the db
     src.env->CreateDir(dbname);  // In case it does not exist
     src.env->RenameFile(InfoLogFileName(dbname), OldInfoLogFileName(dbname));
+  //result.info_log为logger指针
     Status s = src.env->NewLogger(InfoLogFileName(dbname), &result.info_log);
     if (!s.ok()) {
       // No place suitable for logging
@@ -111,6 +116,7 @@ Options SanitizeOptions(const std::string& dbname,
     }
   }
   if (result.block_cache == nullptr) {
+        //block_cache为LRUCache，两个链表，一个hashtable
     result.block_cache = NewLRUCache(8 << 20);
   }
   return result;
@@ -152,6 +158,7 @@ DBImpl::~DBImpl() {
   // Wait for background work to finish
   mutex_.Lock();
   shutting_down_.Release_Store(this);  // Any non-null value is ok
+  //后台compact
   while (background_compaction_scheduled_) {
     background_work_finished_signal_.Wait();
   }
@@ -217,7 +224,7 @@ void DBImpl::MaybeIgnoreError(Status* s) const {
     *s = Status::OK();
   }
 }
-
+//garbage collect,回收过期文件
 void DBImpl::DeleteObsoleteFiles() {
   mutex_.AssertHeld();
 
@@ -240,6 +247,7 @@ void DBImpl::DeleteObsoleteFiles() {
       bool keep = true;
       switch (type) {
         case kLogFile:
+        //如果file的版本号大于等于当前版本号，或者等于之前log号，那么保留
           keep = ((number >= versions_->LogNumber()) ||
                   (number == versions_->PrevLogNumber()));
           break;
@@ -248,6 +256,7 @@ void DBImpl::DeleteObsoleteFiles() {
           // (in case there is a race that allows other incarnations)
           keep = (number >= versions_->ManifestFileNumber());
           break;
+          //sstable只要在当前live的文件set中，就不删除
         case kTableFile:
           keep = (live.find(number) != live.end());
           break;
@@ -267,6 +276,7 @@ void DBImpl::DeleteObsoleteFiles() {
         if (type == kTableFile) {
           table_cache_->Evict(number);
         }
+        //想options_.info_log中写入log，格式为第二个参数，后面参数为%d代表的值
         Log(options_.info_log, "Delete type=%d #%lld\n",
             static_cast<int>(type),
             static_cast<unsigned long long>(number));
@@ -326,6 +336,7 @@ Status DBImpl::Recover(VersionEdit* edit, bool *save_manifest) {
   if (!s.ok()) {
     return s;
   }
+  //在versions中的文件删除，添加到logs中
   std::set<uint64_t> expected;
   versions_->AddLiveFiles(&expected);
   uint64_t number;
@@ -1522,6 +1533,7 @@ Status DB::Open(const Options& options, const std::string& dbname,
       impl->mem_->Ref();
     }
   }
+  //把versionedit信息保存到manifest元数据文件中
   if (s.ok() && save_manifest) {
     edit.SetPrevLogNumber(0);  // No older logs needed after recovery.
     edit.SetLogNumber(impl->logfile_number_);

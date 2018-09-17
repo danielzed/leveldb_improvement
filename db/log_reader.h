@@ -28,7 +28,7 @@ class Reader {
     // of bytes dropped due to the corruption.
     virtual void Corruption(size_t bytes, const Status& status) = 0;
   };
-
+//从file中读取record
   // Create a reader that will return log records from "*file".
   // "*file" must remain live while this Reader is in use.
   //
@@ -45,6 +45,8 @@ class Reader {
 
   ~Reader();
 
+//scratch临时保存数据？scratch和record的指针指向应该是一样的，所以
+//要想使用record，必须保证scratch有效。
   // Read the next record into *record.  Returns true if read
   // successfully, false if we hit end of the input.  May use
   // "*scratch" as temporary storage.  The contents filled in *record

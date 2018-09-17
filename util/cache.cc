@@ -270,7 +270,7 @@ Cache::Handle* LRUCache::Insert(
     const Slice& key, uint32_t hash, void* value, size_t charge,
     void (*deleter)(const Slice& key, void* value)) {
   MutexLock l(&mutex_);
-
+//LRUhandle结构体中默认的占位一字节数组key_data，动态分配内存，提升效率
   LRUHandle* e = reinterpret_cast<LRUHandle*>(
       malloc(sizeof(LRUHandle)-1 + key.size()));
   e->value = value;
@@ -287,11 +287,13 @@ Cache::Handle* LRUCache::Insert(
     e->in_cache = true;
     LRU_Append(&in_use_, e);
     usage_ += charge;
+    //从hashtable中删除insert重复的handle
     FinishErase(table_.Insert(e));
   } else {  // don't cache. (capacity_==0 is supported and turns off caching.)
     // next is read by key() in an assert, so it must be initialized
     e->next = nullptr;
   }
+  //垃圾回收
   while (usage_ > capacity_ && lru_.next != &lru_) {
     LRUHandle* old = lru_.next;
     assert(old->refs == 1);
@@ -336,7 +338,7 @@ void LRUCache::Prune() {
 
 static const int kNumShardBits = 4;
 static const int kNumShards = 1 << kNumShardBits;
-
+//切片，切成2^4，16块，查找效率提升16倍
 class ShardedLRUCache : public Cache {
  private:
   LRUCache shard_[kNumShards];
@@ -346,7 +348,7 @@ class ShardedLRUCache : public Cache {
   static inline uint32_t HashSlice(const Slice& s) {
     return Hash(s.data(), s.size(), 0);
   }
-
+//取高4位作为切片的key,
   static uint32_t Shard(uint32_t hash) {
     return hash >> (32 - kNumShardBits);
   }

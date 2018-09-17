@@ -82,7 +82,7 @@ Status WriteBatch::Iterate(Handler* handler) const {
     return Status::OK();
   }
 }
-
+//rep的前8个字节是sequencenum，第九个字节是长度
 int WriteBatchInternal::Count(const WriteBatch* b) {
   return DecodeFixed32(b->rep_.data() + 8);
 }
@@ -98,7 +98,7 @@ SequenceNumber WriteBatchInternal::Sequence(const WriteBatch* b) {
 void WriteBatchInternal::SetSequence(WriteBatch* b, SequenceNumber seq) {
   EncodeFixed64(&b->rep_[0], seq);
 }
-
+//rep中每条record，type+ksize+key+vsize+value
 void WriteBatch::Put(const Slice& key, const Slice& value) {
   WriteBatchInternal::SetCount(this, WriteBatchInternal::Count(this) + 1);
   rep_.push_back(static_cast<char>(kTypeValue));
@@ -113,6 +113,7 @@ void WriteBatch::Delete(const Slice& key) {
 }
 
 namespace {
+  //负责将writebatch中的记录写到memtable
 class MemTableInserter : public WriteBatch::Handler {
  public:
   SequenceNumber sequence_;

@@ -13,6 +13,8 @@ namespace leveldb {
 namespace {
 class MergingIterator : public Iterator {
  public:
+  //children代表很多table的iterator，而且通过iterator可以将所属的数据结构sstable清除。
+  //iteratorwrapper，初始化时用的iterator，防止出错。后续可更改，wrapper不同的iterator
   MergingIterator(const Comparator* comparator, Iterator** children, int n)
       : comparator_(comparator),
         children_(new IteratorWrapper[n]),
@@ -23,7 +25,7 @@ class MergingIterator : public Iterator {
       children_[i].Set(children[i]);
     }
   }
-
+//delete清除，出发children_的iterator的析构函数
   virtual ~MergingIterator() {
     delete[] children_;
   }
@@ -31,7 +33,9 @@ class MergingIterator : public Iterator {
   virtual bool Valid() const {
     return (current_ != nullptr);
   }
-
+  //将所有children中的iterator 寻址到first，找到其中最小值。
+  //并设置方向为前向merge
+  
   virtual void SeekToFirst() {
     for (int i = 0; i < n_; i++) {
       children_[i].SeekToFirst();
@@ -39,7 +43,7 @@ class MergingIterator : public Iterator {
     FindSmallest();
     direction_ = kForward;
   }
-
+//将所有iterator寻址到最后，找到其中最大key，设置方向为反向
   virtual void SeekToLast() {
     for (int i = 0; i < n_; i++) {
       children_[i].SeekToLast();
@@ -47,7 +51,7 @@ class MergingIterator : public Iterator {
     FindLargest();
     direction_ = kReverse;
   }
-
+//所有iterator找到小于target的key的entry，找到其中最小值
   virtual void Seek(const Slice& target) {
     for (int i = 0; i < n_; i++) {
       children_[i].Seek(target);
@@ -55,7 +59,7 @@ class MergingIterator : public Iterator {
     FindSmallest();
     direction_ = kForward;
   }
-
+//保证所有iterator的key大于当前key
   virtual void Next() {
     assert(Valid());
 
@@ -69,6 +73,7 @@ class MergingIterator : public Iterator {
         IteratorWrapper* child = &children_[i];
         if (child != current_) {
           child->Seek(key());
+          //找到大于key的第一个entry，如果等于会next
           if (child->Valid() &&
               comparator_->Compare(key(), child->key()) == 0) {
             child->Next();
@@ -79,6 +84,7 @@ class MergingIterator : public Iterator {
     }
 
     current_->Next();
+    //findsmallest会把current设置为最小的iteratorwrapper。从而进行merge
     FindSmallest();
   }
 
@@ -151,7 +157,8 @@ class MergingIterator : public Iterator {
   };
   Direction direction_;
 };
-
+//之前会对所有iterator进行seek操作，然后找到所有iterator中最小的一个
+//寻找所有children中iterator的最小key。设为current_
 void MergingIterator::FindSmallest() {
   IteratorWrapper* smallest = nullptr;
   for (int i = 0; i < n_; i++) {

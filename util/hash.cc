@@ -14,7 +14,11 @@
 #endif
 
 namespace leveldb {
-
+//对data处数据做hash运算，公式为：
+  //h=seed^(n*m)
+  //w=data[i*4,(i+1)*4]
+  //h=(h+w)*m;
+  //h=h^(h>>16);
 uint32_t Hash(const char* data, size_t n, uint32_t seed) {
   // Similar to murmur hash
   const uint32_t m = 0xc6a4a793;

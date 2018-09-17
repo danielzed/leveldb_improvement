@@ -89,6 +89,7 @@ using OnceType = std::once_flag;
 
 // Thinly wraps std::call_once.
 inline void InitOnce(OnceType* once, void (*initializer)()) {
+//call_once语句只执行一次，保证多线程安全，c++11，单例模式
   std::call_once(*once, *initializer);
 }
 

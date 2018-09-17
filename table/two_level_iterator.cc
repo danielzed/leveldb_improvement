@@ -61,7 +61,7 @@ class TwoLevelIterator: public Iterator {
   void SkipEmptyDataBlocksBackward();
   void SetDataIterator(Iterator* data_iter);
   void InitDataBlock();
-
+//twolevel指的就是index_iter和data_iter两级
   BlockFunction block_function_;
   void* arg_;
   const ReadOptions options_;
@@ -87,7 +87,7 @@ TwoLevelIterator::TwoLevelIterator(
 
 TwoLevelIterator::~TwoLevelIterator() {
 }
-
+//index_iter是第一级，data_iter是第二级
 void TwoLevelIterator::Seek(const Slice& target) {
   index_iter_.Seek(target);
   InitDataBlock();
@@ -101,7 +101,8 @@ void TwoLevelIterator::SeekToFirst() {
   if (data_iter_.iter() != nullptr) data_iter_.SeekToFirst();
   SkipEmptyDataBlocksForward();
 }
-
+//initdatablock除了重设当前datablockhandle之外，还是更改data_iter的值，但datablock有可能为空block
+//seektolast需要跳过空的block
 void TwoLevelIterator::SeekToLast() {
   index_iter_.SeekToLast();
   InitDataBlock();
@@ -121,6 +122,7 @@ void TwoLevelIterator::Prev() {
   SkipEmptyDataBlocksBackward();
 }
 
+//有些index_iter指向的block为空（里面的data_iter为空），则要跳到下一个index_iter
 
 void TwoLevelIterator::SkipEmptyDataBlocksForward() {
   while (data_iter_.iter() == nullptr || !data_iter_.Valid()) {
@@ -134,7 +136,7 @@ void TwoLevelIterator::SkipEmptyDataBlocksForward() {
     if (data_iter_.iter() != nullptr) data_iter_.SeekToFirst();
   }
 }
-
+//根据data_iter和index_iter的值，更新后向查找第一个不为nullptr的data_iter
 void TwoLevelIterator::SkipEmptyDataBlocksBackward() {
   while (data_iter_.iter() == nullptr || !data_iter_.Valid()) {
     // Move to next block
@@ -152,7 +154,7 @@ void TwoLevelIterator::SetDataIterator(Iterator* data_iter) {
   if (data_iter_.iter() != nullptr) SaveError(data_iter_.status());
   data_iter_.Set(data_iter);
 }
-
+//获取index_iter的值handle，判断于当前data_block_handle是否相等，如果不等，重设当前datablockhandle
 void TwoLevelIterator::InitDataBlock() {
   if (!index_iter_.Valid()) {
     SetDataIterator(nullptr);

@@ -112,7 +112,7 @@ class Repairer {
   std::vector<uint64_t> logs_;
   std::vector<TableInfo> tables_;
   uint64_t next_file_number_;
-
+//descripter对应manifest，log对应log，table对应table
   Status FindFiles() {
     std::vector<std::string> filenames;
     Status status = env_->GetChildren(dbname_, &filenames);
@@ -192,7 +192,7 @@ class Repairer {
     // numbers).
     log::Reader reader(lfile, &reporter, false/*do not checksum*/,
                        0/*initial_offset*/);
-
+//从log文件中读取每条record通过reader，并添加到memtable中
     // Read all the records and add to a memtable
     std::string scratch;
     Slice record;
@@ -254,7 +254,7 @@ class Repairer {
     r.verify_checksums = options_.paranoid_checks;
     return table_cache_->NewIterator(r, meta.number, meta.file_size);
   }
-
+//扫描一个sstable
   void ScanTable(uint64_t number) {
     TableInfo t;
     t.meta.number = number;

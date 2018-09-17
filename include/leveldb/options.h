@@ -16,7 +16,7 @@ class Env;
 class FilterPolicy;
 class Logger;
 class Snapshot;
-
+//DBoption也是存放在blocks中以键值对方式。可能经过压缩snappy
 // DB contents are stored in a set of blocks, each of which holds a
 // sequence of key,value pairs.  Each block may be compressed before
 // being stored in a file.  The following enum describes which
@@ -39,6 +39,7 @@ struct LEVELDB_EXPORT Options {
   // REQUIRES: The client must ensure that the comparator supplied
   // here has the same name and orders keys *exactly* the same as the
   // comparator provided to previous open calls on the same DB.
+  //必须保证，配置中的比较器和用户打开db提供的比较器是同一个。
   const Comparator* comparator;
 
   // If true, the database will be created if it is missing.
@@ -55,6 +56,7 @@ struct LEVELDB_EXPORT Options {
   // corruption of one DB entry may cause a large number of entries to
   // become unreadable or for the entire DB to become unopenable.
   // Default: false
+  //激进的检查数据中的问题。
   bool paranoid_checks;
 
   // Use the specified object to interact with the environment,
@@ -130,7 +132,7 @@ struct LEVELDB_EXPORT Options {
   //
   // Default: kSnappyCompression, which gives lightweight but fast
   // compression.
-  //
+  //压缩/解压缩速率比大多数持久性存储速率快，所以压缩总是能提高效率
   // Typical speeds of kSnappyCompression on an Intel(R) Core(TM)2 2.4GHz:
   //    ~200-500MB/s compression
   //    ~400-800MB/s decompression
@@ -163,11 +165,13 @@ struct LEVELDB_EXPORT ReadOptions {
   // If true, all data read from underlying storage will be
   // verified against corresponding checksums.
   // Default: false
+  //是否checksum校验
   bool verify_checksums;
 
   // Should the data read for this iteration be cached in memory?
   // Callers may wish to set this field to false for bulk scans.
   // Default: true
+  //是否独处的数据要缓存在内存中
   bool fill_cache;
 
   // If "snapshot" is non-null, read as of the supplied snapshot

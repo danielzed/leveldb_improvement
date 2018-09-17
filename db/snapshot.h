@@ -11,7 +11,7 @@
 namespace leveldb {
 
 class SnapshotList;
-
+//snapshot包装在双向链表中，在加上序列号
 // Snapshots are kept in a doubly-linked list in the DB.
 // Each SnapshotImpl corresponds to a particular sequence number.
 class SnapshotImpl : public Snapshot {
@@ -52,7 +52,7 @@ class SnapshotList {
     assert(empty() || newest()->sequence_number_ <= sequence_number);
 
     SnapshotImpl* snapshot = new SnapshotImpl(sequence_number);
-
+//添加snapshot到列表头
 #if !defined(NDEBUG)
     snapshot->list_ = this;
 #endif  // !defined(NDEBUG)

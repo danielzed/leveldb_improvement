@@ -209,6 +209,7 @@ void DBIter::Prev() {
     // iter_ is pointing at the current entry.  Scan backwards until
     // the key changes so we can use the normal reverse scanning code.
     assert(iter_->Valid());  // Otherwise valid_ would have been false
+    //找到之前一个小于当前key的iter位置，方向改为reverse
     SaveKey(ExtractUserKey(iter_->key()), &saved_key_);
     while (true) {
       iter_->Prev();

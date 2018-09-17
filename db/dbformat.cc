@@ -8,18 +8,18 @@
 #include "util/coding.h"
 
 namespace leveldb {
-
+//将序列号和type信息打包成8字节
 static uint64_t PackSequenceAndType(uint64_t seq, ValueType t) {
   assert(seq <= kMaxSequenceNumber);
   assert(t <= kValueTypeForSeek);
   return (seq << 8) | t;
 }
-
+//internalkey的构造方法，在result位置，放上userkey和package成8字节的sequence和type
 void AppendInternalKey(std::string* result, const ParsedInternalKey& key) {
   result->append(key.user_key.data(), key.user_key.size());
   PutFixed64(result, PackSequenceAndType(key.sequence, key.type));
 }
-
+//返回internalkey拆分成userkey，sequence,type的debug字符串
 std::string ParsedInternalKey::DebugString() const {
   char buf[50];
   snprintf(buf, sizeof(buf), "' @ %llu : %d",
@@ -42,11 +42,12 @@ std::string InternalKey::DebugString() const {
   }
   return result;
 }
-
+//类似comparator，iterator，filterpolicy等重载的子类，都需要name方法声明自己
 const char* InternalKeyComparator::Name() const {
   return "leveldb.InternalKeyComparator";
 }
-
+//internalkey的比较，先比较其中的userkey，如果相等，在比较最后8字节的sequence和type
+//0相等，-1 a大，1 b大
 int InternalKeyComparator::Compare(const Slice& akey, const Slice& bkey) const {
   // Order by:
   //    increasing user key (according to user-supplied comparator)
@@ -83,7 +84,8 @@ void InternalKeyComparator::FindShortestSeparator(
     start->swap(tmp);
   }
 }
-
+//tmp为key中userkey的复制，取其后继，如果tmp不全为ff，则tmp长度+1。
+//然后再tmp处构造internalkey，于key交换，从而将结果传给用户
 void InternalKeyComparator::FindShortSuccessor(std::string* key) const {
   Slice user_key = ExtractUserKey(*key);
   std::string tmp(user_key.data(), user_key.size());
@@ -101,7 +103,8 @@ void InternalKeyComparator::FindShortSuccessor(std::string* key) const {
 const char* InternalFilterPolicy::Name() const {
   return user_policy_->Name();
 }
-
+//const_cast修改keys的const属性，从而可以在函数中对keys的值修改
+//再user_policy中调用createfilter创建userkey的bitmap
 void InternalFilterPolicy::CreateFilter(const Slice* keys, int n,
                                         std::string* dst) const {
   // We rely on the fact that the code in table.cc does not mind us

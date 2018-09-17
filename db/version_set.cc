@@ -82,7 +82,7 @@ Version::~Version() {
     }
   }
 }
-
+//二分法搜索文件
 int FindFile(const InternalKeyComparator& icmp,
              const std::vector<FileMetaData*>& files,
              const Slice& key) {
@@ -218,6 +218,7 @@ static Iterator* GetFileIterator(void* arg,
     return NewErrorIterator(
         Status::Corruption("FileReader invoked with unexpected value"));
   } else {
+        //16字节拆成文件数和文件大小
     return cache->NewIterator(options,
                               DecodeFixed64(file_value.data()),
                               DecodeFixed64(file_value.data() + 8));
@@ -226,6 +227,7 @@ static Iterator* GetFileIterator(void* arg,
 
 Iterator* Version::NewConcatenatingIterator(const ReadOptions& options,
                                             int level) const {
+//index_iter,和blockfunc（获得data_iter）
   return NewTwoLevelIterator(
       new LevelFileNumIterator(vset_->icmp_, &files_[level]),
       &GetFileIterator, vset_->table_cache_, options);
@@ -293,6 +295,8 @@ void Version::ForEachOverlapping(Slice user_key, Slice internal_key,
   // Search level-0 in order from newest to oldest.
   std::vector<FileMetaData*> tmp;
   tmp.reserve(files_[0].size());
+  //找到所有包含userkey的filemetadata
+  //第0层需要递归所有table，而更高层不需要，因为不同文件之间不会overlap
   for (uint32_t i = 0; i < files_[0].size(); i++) {
     FileMetaData* f = files_[0][i];
     if (ucmp->Compare(user_key, f->smallest.user_key()) >= 0 &&
@@ -348,6 +352,7 @@ Status Version::Get(const ReadOptions& options,
   // in an smaller level, later levels are irrelevant.
   std::vector<FileMetaData*> tmp;
   FileMetaData* tmp2;
+  //从0层开始get搜索key，低层值比高层值更新。
   for (int level = 0; level < config::kNumLevels; level++) {
     size_t num_files = files_[level].size();
     if (num_files == 0) continue;
@@ -661,7 +666,7 @@ class VersionSet::Builder {
     }
     base_->Unref();
   }
-
+//添加以及删除file，compact延后执行，允许执行几次seek之后在执行。
   // Apply all of the edits in *edit to the current state.
   void Apply(VersionEdit* edit) {
     // Update compaction pointers
@@ -741,6 +746,7 @@ class VersionSet::Builder {
 
 #ifndef NDEBUG
       // Make sure there is no overlap in levels > 0
+      //判断version中files列表里（level》0）是否存在key range overlap的情况
       if (level > 0) {
         for (uint32_t i = 1; i < v->files_[level].size(); i++) {
           const InternalKey& prev_end = v->files_[level][i-1]->largest;
@@ -756,7 +762,9 @@ class VersionSet::Builder {
 #endif
     }
   }
-
+//f->number唯一标识一个文件
+  //如果文件再删除文件列表里，则什么都不做
+  //否则在version的files列表中添加f
   void MaybeAddFile(Version* v, int level, FileMetaData* f) {
     if (levels_[level].deleted_files.count(f->number) > 0) {
       // File is deleted: do nothing
@@ -800,7 +808,7 @@ VersionSet::~VersionSet() {
   delete descriptor_log_;
   delete descriptor_file_;
 }
-
+//更新current version为v，更新dummyversion列表
 void VersionSet::AppendVersion(Version* v) {
   // Make "v" current
   assert(v->refs_ == 0);
@@ -902,7 +910,7 @@ Status VersionSet::LogAndApply(VersionEdit* edit, port::Mutex* mu) {
 
   return s;
 }
-
+//从current文件中获取到当前manifest的文件指针
 Status VersionSet::Recover(bool *save_manifest) {
   struct LogReporter : public log::Reader::Reporter {
     Status* status;
@@ -1001,7 +1009,7 @@ Status VersionSet::Recover(bool *save_manifest) {
     if (!have_prev_log_number) {
       prev_log_number = 0;
     }
-
+//filenumber是唯一的,从参数的下一个number开始
     MarkFileNumberUsed(prev_log_number);
     MarkFileNumberUsed(log_number);
   }
@@ -1065,7 +1073,8 @@ void VersionSet::MarkFileNumberUsed(uint64_t number) {
     next_file_number_ = number + 1;
   }
 }
-
+//通过某种方式计算最应该进行compaction的level
+//score在level0是用文件数量，而在level1以上使用文件大小作为参考
 void VersionSet::Finalize(Version* v) {
   // Precomputed best level for next compaction
   int best_level = -1;
@@ -1186,7 +1195,8 @@ uint64_t VersionSet::ApproximateOffsetOf(Version* v, const InternalKey& ikey) {
   }
   return result;
 }
-
+//以dummyversion开头的version列表
+//live中添加所有version的所有level的所有文件
 void VersionSet::AddLiveFiles(std::set<uint64_t>* live) {
   for (Version* v = dummy_versions_.next_;
        v != &dummy_versions_;

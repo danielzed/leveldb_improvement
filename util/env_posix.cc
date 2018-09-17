@@ -135,7 +135,8 @@ class PosixSequentialFile: public SequentialFile {
     return Status::OK();
   }
 };
-
+//用limiter限制句柄使用，如果limiter没有多余资源，只能根据filename临时打开文件
+//获得句柄
 // pread() based random-access
 class PosixRandomAccessFile: public RandomAccessFile {
  private:
@@ -186,7 +187,7 @@ class PosixRandomAccessFile: public RandomAccessFile {
     return s;
   }
 };
-
+//内存映射的可读文件，mmapped_region为文件映射到内存中的位置
 // mmap() based random-access
 class PosixMmapReadableFile: public RandomAccessFile {
  private:
@@ -220,7 +221,7 @@ class PosixMmapReadableFile: public RandomAccessFile {
     return s;
   }
 };
-
+//buf_存放待写到文件中的数据，加层缓存提高效率
 class PosixWritableFile : public WritableFile {
  private:
   // buf_[0, pos_-1] contains data to be written to fd_.
@@ -239,11 +240,11 @@ class PosixWritableFile : public WritableFile {
       Close();
     }
   }
-
+//pos_为当前占用buf_空间大小，最大kBufSize
   virtual Status Append(const Slice& data) {
     size_t n = data.size();
     const char* p = data.data();
-
+//有可能当前buf剩余空间不够存放data
     // Fit as much as possible into buffer.
     size_t copy = std::min(n, kBufSize - pos_);
     memcpy(buf_ + pos_, p, copy);
@@ -253,7 +254,7 @@ class PosixWritableFile : public WritableFile {
     if (n == 0) {
       return Status::OK();
     }
-
+//还剩data没写完，先发一次write操作，再重新写buf
     // Can't fit in buffer, so need to do at least one write.
     Status s = FlushBuffered();
     if (!s.ok()) {
@@ -282,7 +283,9 @@ class PosixWritableFile : public WritableFile {
   virtual Status Flush() {
     return FlushBuffered();
   }
-
+//将filename分割成dir和filename，通过最后一个/来划分
+//如果file是manifest文件，那么需要执行fsync，每次写入都更新到磁盘。
+//也可以在open的时候，设置O_SYNC来达到
   Status SyncDirIfManifest() {
     const char* f = filename_.c_str();
     const char* sep = strrchr(f, '/');
@@ -309,7 +312,7 @@ class PosixWritableFile : public WritableFile {
     }
     return s;
   }
-
+//如果根据文件名发现是manifest，需要一致flushbuffered
   virtual Status Sync() {
     // Ensure new files referred to by the manifest are in the filesystem.
     Status s = SyncDirIfManifest();
@@ -331,7 +334,7 @@ class PosixWritableFile : public WritableFile {
     pos_ = 0;
     return s;
   }
-
+//向fd_的文件中写，数据在p指针处，长度n
   Status WriteRaw(const char* p, size_t n) {
     while (n > 0) {
       ssize_t r = write(fd_, p, n);
@@ -347,7 +350,9 @@ class PosixWritableFile : public WritableFile {
     return Status::OK();
   }
 };
-
+//通过fcntl，控制对fd代表的文件加解锁。
+//linux实现文件加锁有两种方式，lock和fcntl
+//根据lock值动态实现加锁解锁
 static int LockOrUnlock(int fd, bool lock) {
   errno = 0;
   struct flock f;
@@ -403,7 +408,8 @@ class PosixEnv : public Env {
       return Status::OK();
     }
   }
-
+//有可能生成mmapreadablefile和randomaccessfile，具体根据mmap_limiter是否有更多mmap资源
+//决定。
   virtual Status NewRandomAccessFile(const std::string& fname,
                                      RandomAccessFile** result) {
     *result = nullptr;
@@ -431,7 +437,7 @@ class PosixEnv : public Env {
     }
     return s;
   }
-
+//会新建一个全新的只写的文件，权限644
   virtual Status NewWritableFile(const std::string& fname,
                                  WritableFile** result) {
     Status s;
@@ -444,7 +450,7 @@ class PosixEnv : public Env {
     }
     return s;
   }
-
+//新建或复用现存文件，只写
   virtual Status NewAppendableFile(const std::string& fname,
                                    WritableFile** result) {
     Status s;
@@ -461,7 +467,7 @@ class PosixEnv : public Env {
   virtual bool FileExists(const std::string& fname) {
     return access(fname.c_str(), F_OK) == 0;
   }
-
+//dirent代表dir中的目录项，readdir和opendir
   virtual Status GetChildren(const std::string& dir,
                              std::vector<std::string>* result) {
     result->clear();
@@ -476,7 +482,7 @@ class PosixEnv : public Env {
     closedir(d);
     return Status::OK();
   }
-
+//unlink实现
   virtual Status DeleteFile(const std::string& fname) {
     Status result;
     if (unlink(fname.c_str()) != 0) {
@@ -554,7 +560,7 @@ class PosixEnv : public Env {
     delete my_lock;
     return result;
   }
-
+//回调函数
   virtual void Schedule(void (*function)(void*), void* arg);
 
   virtual void StartThread(void (*function)(void* arg), void* arg);
@@ -620,7 +626,7 @@ class PosixEnv : public Env {
   pthread_cond_t bgsignal_;
   pthread_t bgthread_;
   bool started_bgthread_;
-
+//后台线程
   // Entry per Schedule() call
   struct BGItem { void* arg; void (*function)(void*); };
   typedef std::deque<BGItem> BGQueue;

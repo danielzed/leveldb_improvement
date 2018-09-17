@@ -54,7 +54,7 @@ class SkipList {
 
   // Returns true iff an entry that compares equal to key is in the list.
   bool Contains(const Key& key) const;
-
+//特定数据结构的迭代器
   // Iteration over the contents of a skip list
   class Iterator {
    public:
@@ -151,6 +151,7 @@ struct SkipList<Key,Comparator>::Node {
 
   // Accessors/mutators for links.  Wrapped in methods so we can
   // add the appropriate barriers as necessary.
+  //next_数组保存不同level的node数组
   Node* Next(int n) {
     assert(n >= 0);
     // Use an 'acquire load' so that we observe a fully initialized
@@ -178,7 +179,7 @@ struct SkipList<Key,Comparator>::Node {
   // Array of length equal to the node height.  next_[0] is lowest level link.
   port::AtomicPointer next_[1];
 };
-
+//new加内存储arena，height会成比例的增加每个node的空间，每个node会在跳表中出现height次
 template<typename Key, class Comparator>
 typename SkipList<Key,Comparator>::Node*
 SkipList<Key,Comparator>::NewNode(const Key& key, int height) {
@@ -244,6 +245,7 @@ int SkipList<Key,Comparator>::RandomHeight() {
   // Increase height with probability 1 in kBranching
   static const unsigned int kBranching = 4;
   int height = 1;
+  //1/4的可能性height会增加1.
   while (height < kMaxHeight && ((rnd_.Next() % kBranching) == 0)) {
     height++;
   }
@@ -263,6 +265,7 @@ typename SkipList<Key,Comparator>::Node* SkipList<Key,Comparator>::FindGreaterOr
     const {
   Node* x = head_;
   int level = GetMaxHeight() - 1;
+  //按照不同level来搜索，从最高level到最低level
   while (true) {
     Node* next = x->Next(level);
     if (KeyIsAfterNode(key, next)) {
@@ -279,7 +282,7 @@ typename SkipList<Key,Comparator>::Node* SkipList<Key,Comparator>::FindGreaterOr
     }
   }
 }
-
+//head_代表结构中最高level第一个node
 template<typename Key, class Comparator>
 typename SkipList<Key,Comparator>::Node*
 SkipList<Key,Comparator>::FindLessThan(const Key& key) const {

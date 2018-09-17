@@ -27,7 +27,7 @@ Logger::~Logger() {
 
 FileLock::~FileLock() {
 }
-
+//va_list代表。。。中的参数列表
 void Log(Logger* info_log, const char* format, ...) {
   if (info_log != nullptr) {
     va_list ap;

@@ -5,7 +5,7 @@
 // The representation of a DBImpl consists of a set of Versions.  The
 // newest version is called "current".  Older versions may be kept
 // around to provide a consistent view to live iterators.
-//
+//每个versionset都保存所有level的fileset
 // Each Version keeps track of a set of Table files per level.  The
 // entire set of versions is maintained in a VersionSet.
 //
@@ -35,7 +35,7 @@ class TableCache;
 class Version;
 class VersionSet;
 class WritableFile;
-
+//compact时需要的一些功能
 // Return the smallest index i such that files[i]->largest >= key.
 // Return files.size() if there is no such file.
 // REQUIRES: "files" contains a sorted list of non-overlapping files.
@@ -93,7 +93,7 @@ class Version {
       const InternalKey* begin,         // nullptr means before all keys
       const InternalKey* end,           // nullptr means after all keys
       std::vector<FileMetaData*>* inputs);
-
+//判断某个级别是否有文件再compact的range里面
   // Returns true iff some file in the specified level overlaps
   // some part of [*smallest_user_key,*largest_user_key].
   // smallest_user_key==nullptr represents a key smaller than all the DB's keys.
@@ -106,7 +106,7 @@ class Version {
   // result that covers the range [smallest_user_key,largest_user_key].
   int PickLevelForMemTableOutput(const Slice& smallest_user_key,
                                  const Slice& largest_user_key);
-
+//files_保存文件元信息，每个级别有多少文件，以及文件号
   int NumFiles(int level) const { return files_[level].size(); }
 
   // Return a human readable string that describes this version's contents.
@@ -118,7 +118,7 @@ class Version {
 
   class LevelFileNumIterator;
   Iterator* NewConcatenatingIterator(const ReadOptions&, int level) const;
-
+//foreach map函数，
   // Call func(arg, level, f) for every file that overlaps user_key in
   // order from newest to oldest.  If an invocation of func returns
   // false, makes no more calls.
@@ -139,7 +139,7 @@ class Version {
   // Next file to compact based on seek stats.
   FileMetaData* file_to_compact_;
   int file_to_compact_level_;
-
+//compaction_scroe 指示compact的优先级，不同level，计算公式不一样。
   // Level that should be compacted next and its compaction score.
   // Score < 1 means compaction is not strictly needed.  These fields
   // are initialized by Finalize().
@@ -222,7 +222,7 @@ class VersionSet {
   // Return the log file number for the log file that is currently
   // being compacted, or zero if there is no such log file.
   uint64_t PrevLogNumber() const { return prev_log_number_; }
-
+//选择compact需要的level和输入
   // Pick level and inputs for a new compaction.
   // Returns nullptr if there is no compaction to be done.
   // Otherwise returns a pointer to a heap-allocated object that

@@ -43,7 +43,7 @@ struct TableBuilder::Rep {
   BlockHandle pending_handle;  // Handle to add to index block
 
   std::string compressed_output;
-
+//filterblock，data_block
   Rep(const Options& opt, WritableFile* f)
       : options(opt),
         index_block_options(opt),
@@ -176,6 +176,7 @@ void TableBuilder::WriteRawBlock(const Slice& block_contents,
                                  CompressionType type,
                                  BlockHandle* handle) {
   Rep* r = rep_;
+  //先向file中写contents，再写handle元信息trailer
   handle->set_offset(r->offset);
   handle->set_size(block_contents.size());
   r->status = r->file->Append(block_contents);
@@ -195,7 +196,8 @@ void TableBuilder::WriteRawBlock(const Slice& block_contents,
 Status TableBuilder::status() const {
   return rep_->status;
 }
-
+//将filter_block_handle,metaindex_block_handle,index_block_handle，footer写入到rep中
+//并把blockcontent附加到rep制定的文件中
 Status TableBuilder::Finish() {
   Rep* r = rep_;
   Flush();
@@ -205,6 +207,7 @@ Status TableBuilder::Finish() {
   BlockHandle filter_block_handle, metaindex_block_handle, index_block_handle;
 
   // Write filter block
+  //filterblock中存放的是重启点的偏移和个数，finish生成slice作为blockcontents传入给write方法
   if (ok() && r->filter_block != nullptr) {
     WriteRawBlock(r->filter_block->Finish(), kNoCompression,
                   &filter_block_handle);

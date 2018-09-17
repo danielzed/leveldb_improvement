@@ -59,7 +59,7 @@ void VersionEdit::EncodeTo(std::string* dst) const {
     PutVarint32(dst, kLastSequence);
     PutVarint64(dst, last_sequence_);
   }
-
+//compact_pointer是与compact操作什么关系。
   for (size_t i = 0; i < compact_pointers_.size(); i++) {
     PutVarint32(dst, kCompactPointer);
     PutVarint32(dst, compact_pointers_[i].first);  // level
@@ -105,7 +105,7 @@ static bool GetLevel(Slice* input, int* level) {
     return false;
   }
 }
-
+//从src中解析versionedit的内容
 Status VersionEdit::DecodeFrom(const Slice& src) {
   Clear();
   Slice input = src;

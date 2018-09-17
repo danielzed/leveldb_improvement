@@ -69,7 +69,7 @@ class MemTable {
   };
   friend class MemTableIterator;
   friend class MemTableBackwardIterator;
-
+//Table数据结构是用跳表实现
   typedef SkipList<const char*, KeyComparator> Table;
 
   KeyComparator comparator_;

@@ -16,7 +16,7 @@
 #include "util/coding.h"
 
 namespace leveldb {
-
+//ssttable，包含metaindex-handle，index_block_handle
 struct Table::Rep {
   ~Rep() {
     delete filter;
@@ -43,7 +43,7 @@ Status Table::Open(const Options& options,
   if (size < Footer::kEncodedLength) {
     return Status::Corruption("file is too short to be an sstable");
   }
-
+//先从文件中读取footer信息。
   char footer_space[Footer::kEncodedLength];
   Slice footer_input;
   Status s = file->Read(size - Footer::kEncodedLength, Footer::kEncodedLength,
@@ -63,7 +63,7 @@ Status Table::Open(const Options& options,
     }
     s = ReadBlock(file, opt, footer.index_handle(), &index_block_contents);
   }
-
+//table信息填写，
   if (s.ok()) {
     // We've successfully read the footer and the index block: we're
     // ready to serve requests.
@@ -99,6 +99,7 @@ void Table::ReadMeta(const Footer& footer) {
     // Do not propagate errors since meta info is not needed for operation
     return;
   }
+  //获取第一个metablock
   Block* meta = new Block(contents);
 
   Iterator* iter = meta->NewIterator(BytewiseComparator());
@@ -211,7 +212,7 @@ Iterator* Table::BlockReader(void* arg,
   }
   return iter;
 }
-
+//twoleveliterator的特点？
 Iterator* Table::NewIterator(const ReadOptions& options) const {
   return NewTwoLevelIterator(
       rep_->index_block->NewIterator(rep_->options.comparator),

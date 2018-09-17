@@ -18,7 +18,7 @@ struct Options;
 class RandomAccessFile;
 struct ReadOptions;
 class TableCache;
-
+//map字典table，不可变持久性，不用外部同步。
 // A Table is a sorted map from strings to strings.  Tables are
 // immutable and persistent.  A Table may be safely accessed from
 // multiple threads without external synchronization.
@@ -27,7 +27,7 @@ class LEVELDB_EXPORT Table {
   // Attempt to open the table that is stored in bytes [0..file_size)
   // of "file", and read the metadata entries necessary to allow
   // retrieving data from the table.
-  //
+  //从文件中读取一定长度，放入table跳表中。
   // If successful, returns ok and sets "*table" to the newly opened
   // table.  The client should delete "*table" when no longer needed.
   // If there was an error while initializing the table, sets "*table"

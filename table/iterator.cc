@@ -10,7 +10,7 @@ Iterator::Iterator() {
   cleanup_head_.function = nullptr;
   cleanup_head_.next = nullptr;
 }
-
+//iterator析构的时候，执行cleanup_node链表上所有可以执行的清除方法，并删除对应的cleanup_node
 Iterator::~Iterator() {
   if (!cleanup_head_.IsEmpty()) {
     cleanup_head_.Run();
@@ -22,7 +22,7 @@ Iterator::~Iterator() {
     }
   }
 }
-
+//在cleanup_node链表上添加node，每个node包括执行的清除方法，以及arg1，arg2
 void Iterator::RegisterCleanup(CleanupFunction func, void* arg1, void* arg2) {
   assert(func != nullptr);
   CleanupNode* node;

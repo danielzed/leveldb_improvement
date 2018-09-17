@@ -16,6 +16,7 @@ class VersionSet;
 
 struct FileMetaData {
   int refs;
+  //多少次seek之后进行compact，这个特性应该是被删除了
   int allowed_seeks;          // Seeks allowed until compaction
   uint64_t number;
   uint64_t file_size;         // File size in bytes
@@ -24,7 +25,7 @@ struct FileMetaData {
 
   FileMetaData() : refs(0), allowed_seeks(1 << 30), file_size(0) { }
 };
-
+//版本的增量数据，被存放在manifest文件中
 class VersionEdit {
  public:
   VersionEdit() { Clear(); }
@@ -83,7 +84,7 @@ class VersionEdit {
 
  private:
   friend class VersionSet;
-
+//pair中是level和文件号
   typedef std::set< std::pair<int, uint64_t> > DeletedFileSet;
 
   std::string comparator_;

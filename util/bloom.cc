@@ -31,7 +31,11 @@ class BloomFilterPolicy : public FilterPolicy {
   virtual const char* Name() const {
     return "leveldb.BuiltinBloomFilter2";
   }
-
+//bits为位map
+//对keys中每个key做bloomhash h，向右rotate17位作为delta
+//h%bits求得map中bucket的index，
+//在dst后面加上两部分，一是根据key和k个hash函数生成的n*bits_per_key位的filtermap，
+//二是k，代表hash函数的个数。不同hash函数是在bloomhash基础上加上delta偏移。
   virtual void CreateFilter(const Slice* keys, int n, std::string* dst) const {
     // Compute bloom filter size (in both bits and bytes)
     size_t bits = n * bits_per_key_;
@@ -59,7 +63,9 @@ class BloomFilterPolicy : public FilterPolicy {
       }
     }
   }
-
+//array[len-1]处放置的是位map的长度？
+//对输入的key同样做bloomhash，以及不断加上delta
+//判断对应bit是否为0，为0则肯定为false。否则为true
   virtual bool KeyMayMatch(const Slice& key, const Slice& bloom_filter) const {
     const size_t len = bloom_filter.size();
     if (len < 2) return false;

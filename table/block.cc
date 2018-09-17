@@ -241,6 +241,7 @@ class Block::Iter : public Iterator {
     }
 
     // Decode next entry
+    //key_存的是一个重启点中的第一个entry的key，就是其他人共享的。
     uint32_t shared, non_shared, value_length;
     p = DecodeEntry(p, limit, &shared, &non_shared, &value_length);
     if (p == nullptr || key_.size() < shared) {

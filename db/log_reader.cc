@@ -190,7 +190,7 @@ void Reader::ReportDrop(uint64_t bytes, const Status& reason) {
     reporter_->Corruption(static_cast<size_t>(bytes), reason);
   }
 }
-
+//一次从文件中读一个blocksize大小（4k），所有读到的block都存放在buffer上。
 unsigned int Reader::ReadPhysicalRecord(Slice* result) {
   while (true) {
     if (buffer_.size() < kHeaderSize) {

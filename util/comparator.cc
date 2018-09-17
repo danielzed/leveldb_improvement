@@ -25,7 +25,7 @@ class BytewiseComparatorImpl : public Comparator {
   virtual int Compare(const Slice& a, const Slice& b) const {
     return a.compare(b);
   }
-
+//找到start和limit的公共前缀，diff_index
   virtual void FindShortestSeparator(
       std::string* start,
       const Slice& limit) const {
@@ -49,7 +49,8 @@ class BytewiseComparatorImpl : public Comparator {
       }
     }
   }
-
+//successor，后继，找到key指向的字符串中，第一个小于ff的char，+1，退出
+  //并且key的长度+1
   virtual void FindShortSuccessor(std::string* key) const {
     // Find first character that can be incremented
     size_t n = key->size();

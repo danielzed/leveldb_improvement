@@ -13,13 +13,13 @@ Arena::Arena() : memory_usage_(0) {
   alloc_ptr_ = nullptr;  // First allocation will allocate a block
   alloc_bytes_remaining_ = 0;
 }
-
+//比较大的block是直接new出来的，这些block需要用数组管理，在arena析构时释放
 Arena::~Arena() {
   for (size_t i = 0; i < blocks_.size(); i++) {
     delete[] blocks_[i];
   }
 }
-
+//分配bytes字节，若果大于1k，那么直接分配新块，否则分配新块，把其中一部分返回。剩下继续使用
 char* Arena::AllocateFallback(size_t bytes) {
   if (bytes > kBlockSize / 4) {
     // Object is more than a quarter of our block size.  Allocate it separately

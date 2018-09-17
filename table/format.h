@@ -19,6 +19,7 @@ struct ReadOptions;
 
 // BlockHandle is a pointer to the extent of a file that stores a data
 // block or a meta block.
+//datablock和metablock在indexblock中都是用一个blockhandle来定位的
 class BlockHandle {
  public:
   BlockHandle();
@@ -41,7 +42,7 @@ class BlockHandle {
   uint64_t offset_;
   uint64_t size_;
 };
-
+//footer中包括indexblock，metablock的blockhandle和魔数
 // Footer encapsulates the fixed information stored at the tail
 // end of every table file.
 class Footer {
@@ -49,6 +50,7 @@ class Footer {
   Footer() { }
 
   // The block handle for the metaindex block of the table
+  //指向文件中metablock的第一个handle
   const BlockHandle& metaindex_handle() const { return metaindex_handle_; }
   void set_metaindex_handle(const BlockHandle& h) { metaindex_handle_ = h; }
 
@@ -56,6 +58,7 @@ class Footer {
   const BlockHandle& index_handle() const {
     return index_handle_;
   }
+  //indexhandle指向datablock的第一个handle
   void set_index_handle(const BlockHandle& h) {
     index_handle_ = h;
   }
