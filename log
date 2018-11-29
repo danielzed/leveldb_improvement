@@ -1,0 +1,25 @@
+2018/11/29-19:07:10.358387 7f1ec9c0a740 Delete type=3 #1
+2018/11/29-19:07:10.435034 7f1ec3fff700 Level-0 table #5: started
+2018/11/29-19:07:10.474725 7f1ec8abd700 Current memtable full; waiting...
+2018/11/29-19:07:10.533618 7f1ec3fff700 Level-0 table #5: 4288923 bytes OK
+2018/11/29-19:07:10.567675 7f1ec3fff700 Delete type=0 #3
+2018/11/29-19:07:10.569860 7f1ec3fff700 Level-0 table #7: started
+2018/11/29-19:07:10.636377 7f1ec8abd700 Current memtable full; waiting...
+2018/11/29-19:07:10.692263 7f1ec3fff700 Level-0 table #7: 4288923 bytes OK
+2018/11/29-19:07:10.726058 7f1ec3fff700 Delete type=0 #4
+2018/11/29-19:07:10.728193 7f1ec3fff700 Level-0 table #9: started
+2018/11/29-19:07:10.788172 7f1ec8abd700 Current memtable full; waiting...
+2018/11/29-19:07:10.842595 7f1ec3fff700 Level-0 table #9: 4288928 bytes OK
+2018/11/29-19:07:10.876027 7f1ec3fff700 Delete type=0 #6
+2018/11/29-19:07:10.878206 7f1ec3fff700 Level-0 table #11: started
+2018/11/29-19:07:10.936448 7f1ec8abd700 Current memtable full; waiting...
+2018/11/29-19:07:10.992775 7f1ec3fff700 Level-0 table #11: 4288937 bytes OK
+2018/11/29-19:07:11.026029 7f1ec3fff700 Delete type=0 #8
+2018/11/29-19:07:11.028190 7f1ec3fff700 Level-0 table #13: started
+2018/11/29-19:07:11.092761 7f1ec8abd700 Current memtable full; waiting...
+2018/11/29-19:07:11.151439 7f1ec3fff700 Level-0 table #13: 4288920 bytes OK
+2018/11/29-19:07:11.184354 7f1ec3fff700 Delete type=0 #10
+2018/11/29-19:07:11.186564 7f1ec3fff700 Level-0 table #15: started
+2018/11/29-19:07:11.248625 7f1ec8abd700 Current memtable full; waiting...
+2018/11/29-19:07:11.310112 7f1ec3fff700 Level-0 table #15: 4288963 bytes OK
+2018/11/29-19:07:11.351009 7f1ec3fff700 Delete type=0 #12

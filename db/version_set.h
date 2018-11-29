@@ -339,7 +339,18 @@ class Compaction {
   FileMetaData* input(int which, int i) const { return inputs_[which][i]; }
 
   // Maximum size of files to build during this compaction.
-  uint64_t MaxOutputFileSize() const { return max_output_file_size_; }
+  uint64_t MaxOutputFileSize(int level = -1) const 
+  {
+    
+    if(level == 0)
+       return 1<<21;
+    if(level == 1)
+      return 1<<21;
+    if(level == 2)
+      return 1<<21;
+      
+    return max_output_file_size_;
+  }
 
   // Is this a trivial compaction that can be implemented by just
   // moving a single input file to the next level (no merging or splitting)

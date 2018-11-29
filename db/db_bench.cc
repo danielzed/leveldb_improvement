@@ -16,6 +16,12 @@
 #include "util/mutexlock.h"
 #include "util/random.h"
 #include "util/testutil.h"
+//zdn add 11.23
+#include <thread>
+#include "util/posix_logger.h"
+#include <math.h>
+#include <ctime>
+#include <cstdlib>
 
 // Comma-separated list of operations to run in the specified order
 //   Actual benchmarks:
@@ -41,27 +47,38 @@
 //      sstables    -- Print sstable info
 //      heapprofile -- Dump a heap profile (if supported by this port)
 static const char* FLAGS_benchmarks =
-    "fillseq,"
-    "fillsync,"
+    // "fillseq,"
+    // "fillsync,"
+    "stats,"
+    //"sstables,"
     "fillrandom,"
-    "overwrite,"
-    "readrandom,"
+    // "overwrite,"
+    // "readrandom,"
     "readrandom,"  // Extra run to allow previous compactions to quiesce
-    "readseq,"
-    "readreverse,"
+    // "readseq,"
+    // "readreverse,"
+    // "compact,"
+    // "readrandom,"
+    // "readseq,"
+    // "readreverse,"
+    // "fill100K,"
+    // "crc32c,"
+    // "snappycomp,"
+    // "snappyuncomp,"
+    // "acquireload,"
+    "stats,"
+    //"sstables,"
     "compact,"
-    "readrandom,"
-    "readseq,"
-    "readreverse,"
-    "fill100K,"
-    "crc32c,"
-    "snappycomp,"
-    "snappyuncomp,"
-    "acquireload,"
+    "compact,"
+    "compact,"
+    "stats,"
+    //"sstables,"
+    //"heapprofile,"
     ;
 
+
 // Number of key/values to place in database
-static int FLAGS_num = 1000000;
+static int FLAGS_num = 100000;
 
 // Number of read operations to do.  If negative, do FLAGS_num reads.
 static int FLAGS_reads = -1;
@@ -70,7 +87,7 @@ static int FLAGS_reads = -1;
 static int FLAGS_threads = 1;
 
 // Size of each value
-static int FLAGS_value_size = 100;
+static int FLAGS_value_size = 1000;
 
 // Arrange to generate values that shrink to this fraction of
 // their original size after compression
@@ -117,6 +134,79 @@ namespace leveldb {
 
 namespace {
 leveldb::Env* g_env = nullptr;
+
+static double ZIPFIAN_CONSTANT = 0.99;
+class ZipfGenerator {
+private:
+  long items;
+  long base;
+  double zipfianconstant;
+  double alpha,zetan,eta,theta,zeta2theta;
+  long countforzeta;
+  bool allowitemcountdecrease = false;
+public:
+  ZipfGenerator(long min,long max,double c,double z=0)
+  {
+    z = zetastatic(max-min+1,zipfianconstant);
+    items = max-min+1;
+    base = min;
+    zipfianconstant = c;
+    theta = zipfianconstant;
+    zeta2theta = zeta(2,theta);
+    alpha = 1.0/(1.0-theta);
+    zetan = z;
+    countforzeta = items;
+    eta = (1-pow(2.0/items,1-theta))/(1-zeta2theta/zetan);
+    srand(time(0));
+  }
+  double zeta(long n,double thetaVal)
+  {
+    countforzeta = n;
+    return zetastatic(n,thetaVal);
+  }
+  double zeta(long st,long n,double thetaVal,double initialsum)
+  {
+    countforzeta = n;
+    return zetastatic(st,n,thetaVal,initialsum);
+  }
+  double zetastatic(long n,double theta)
+  {
+    return zetastatic(0,n,theta,0);
+  }
+  double zetastatic(long st,long n,double theta,double initialsum)
+  {
+    double sum = initialsum;
+    for(long i = st;i<n;i++)
+    {
+      sum+=1/(pow(i+1,theta));
+    }
+    return sum;
+  }
+  long nextVal(long itemcount)
+  {
+    if(itemcount != countforzeta)
+    {
+      if(itemcount > countforzeta)
+      {
+        zetan = zeta(countforzeta,itemcount,theta,zetan);
+        eta = (1-pow(2.0/items,1-theta))/(1-zeta2theta/zetan);
+      } else if((itemcount<countforzeta)&&(allowitemcountdecrease))
+      {
+        zetan = zeta(itemcount,theta);
+        eta = (1-pow(2.0/items,1-theta))/(1-zeta2theta/zetan);
+      }
+    }
+    double u = (double)rand()/RAND_MAX;
+    double uz = u*zetan;
+    if(uz<1.0){
+      return base;
+    }
+    if(uz<1.0+pow(0.5,theta))
+      return base+1;
+    long ret = base+(long)(itemcount*pow(eta*u-eta+1,alpha));
+    return ret;
+  }
+};
 
 // Helper for quickly generating random data.
 class RandomGenerator {
@@ -429,9 +519,10 @@ class Benchmark {
     delete cache_;
     delete filter_policy_;
   }
-
+//cur_time 当前第几次，影响log的名字
   void Run() {
     PrintHeader();
+    
     Open();
 
     const char* benchmarks = FLAGS_benchmarks;
@@ -703,14 +794,23 @@ class Benchmark {
   }
 
   void Open() {
+    if(db_ != nullptr)
+    {
+      delete db_;
+      db_ = nullptr;
+    }
     assert(db_ == nullptr);
     Options options;
     options.env = g_env;
+    options.compression = kSnappyCompression;
+    
+    FILE* info_log_ = fopen("/home/daniel/projects/leveldb_improvement/log","w+");
+    options.info_log = new PosixLogger(info_log_,pthread_self);
     options.create_if_missing = !FLAGS_use_existing_db;
     options.block_cache = cache_;
     options.write_buffer_size = FLAGS_write_buffer_size;
     options.max_file_size = FLAGS_max_file_size;
-    options.block_size = FLAGS_block_size;
+    options.block_size = 1024;
     options.max_open_files = FLAGS_open_files;
     options.filter_policy = filter_policy_;
     options.reuse_logs = FLAGS_reuse_logs;
@@ -737,6 +837,7 @@ class Benchmark {
     DoWrite(thread, false);
   }
 
+
   void DoWrite(ThreadState* thread, bool seq) {
     if (num_ != FLAGS_num) {
       char msg[100];
@@ -745,13 +846,15 @@ class Benchmark {
     }
 
     RandomGenerator gen;
+    ZipfGenerator zipfgen(0,FLAGS_num-1,ZIPFIAN_CONSTANT);
     WriteBatch batch;
     Status s;
     int64_t bytes = 0;
     for (int i = 0; i < num_; i += entries_per_batch_) {
       batch.Clear();
       for (int j = 0; j < entries_per_batch_; j++) {
-        const int k = seq ? i+j : (thread->rand.Next() % FLAGS_num);
+        // const int k = seq ? i+j : (thread->rand.Next() % FLAGS_num);
+        const int k = seq ? i+j : (zipfgen.nextVal(FLAGS_num));
         char key[100];
         snprintf(key, sizeof(key), "%016d", k);
         batch.Put(key, gen.Generate(value_size_));
@@ -1009,7 +1112,6 @@ int main(int argc, char** argv) {
       default_db_path += "/dbbench";
       FLAGS_db = default_db_path.c_str();
   }
-
   leveldb::Benchmark benchmark;
   benchmark.Run();
   return 0;

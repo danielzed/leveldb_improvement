@@ -1,0 +1,207 @@
+LevelDB:    version 1.20
+Date:       Fri Nov 23 15:08:45 2018
+CPU:        4 * Intel(R) Core(TM) i5-7500 CPU @ 3.40GHz
+CPUCache:   6144 KB
+Keys:       16 bytes each
+Values:     1000 bytes each (500 bytes after compression)
+Entries:    1000000
+RawSize:    968.9 MB (estimated)
+FileSize:   492.1 MB (estimated)
+WARNING: Optimization is disabled: benchmarks unnecessarily slow
+WARNING: Assertions are enabled; benchmarks unnecessarily slow
+WARNING: Snappy compression is not enabled
+------------------------------------------------
+
+                               Compactions
+Level  Files Size(MB) Time(sec) Read(MB) Write(MB)
+--------------------------------------------------
+
+fillrandom   :     300.903 micros/op;    3.2 MB/s
+readrandom   :      21.089 micros/op; (1000000 of 1000000 found)
+
+                               Compactions
+Level  Files Size(MB) Time(sec) Read(MB) Write(MB)
+--------------------------------------------------
+  0        5       20        27        0      1018
+  1       12       23        68     1526      1488
+  2      128      237       153     3702      3548
+  3      229      470        41     1063       988
+
+compact      : 60595507.000 micros/op;
+compact      :   39056.000 micros/op;
+compact      :   40513.000 micros/op;
+
+                               Compactions
+Level  Files Size(MB) Time(sec) Read(MB) Write(MB)
+--------------------------------------------------
+  0        0        0        27        0      1019
+  1        0        0        70     1570      1531
+  2        0        0       166     3988      3827
+  3      319      649        81     2046      1875
+
+
+LevelDB:    version 1.20
+Date:       Fri Nov 23 15:08:45 2018
+CPU:        4 * Intel(R) Core(TM) i5-7500 CPU @ 3.40GHz
+CPUCache:   6144 KB
+Keys:       16 bytes each
+Values:     1000 bytes each (500 bytes after compression)
+Entries:    1000000
+RawSize:    968.9 MB (estimated)
+FileSize:   492.1 MB (estimated)
+WARNING: Optimization is disabled: benchmarks unnecessarily slow
+WARNING: Assertions are enabled; benchmarks unnecessarily slow
+WARNING: Snappy compression is not enabled
+------------------------------------------------
+
+                               Compactions
+Level  Files Size(MB) Time(sec) Read(MB) Write(MB)
+--------------------------------------------------
+
+fillrandom   :     300.903 micros/op;    3.2 MB/s
+readrandom   :      21.089 micros/op; (1000000 of 1000000 found)
+
+                               Compactions
+Level  Files Size(MB) Time(sec) Read(MB) Write(MB)
+--------------------------------------------------
+  0        5       20        27        0      1018
+  1       12       23        68     1526      1488
+  2      128      237       153     3702      3548
+  3      229      470        41     1063       988
+
+compact      : 60595507.000 micros/op;
+compact      :   39056.000 micros/op;
+compact      :   40513.000 micros/op;
+
+                               Compactions
+Level  Files Size(MB) Time(sec) Read(MB) Write(MB)
+--------------------------------------------------
+  0        0        0        27        0      1019
+  1        0        0        70     1570      1531
+  2        0        0       166     3988      3827
+  3      319      649        81     2046      1875
+
+daniel@daniel-MS-7A74:~/projects/leveldb_improvement/build$ ./db_bench
+LevelDB:    version 1.20
+Date:       Fri Nov 23 15:15:53 2018
+CPU:        4 * Intel(R) Core(TM) i5-7500 CPU @ 3.40GHz
+CPUCache:   6144 KB
+Keys:       16 bytes each
+Values:     1000 bytes each (500 bytes after compression)
+Entries:    1000000
+RawSize:    968.9 MB (estimated)
+FileSize:   492.1 MB (estimated)
+WARNING: Optimization is disabled: benchmarks unnecessarily slow
+WARNING: Assertions are enabled; benchmarks unnecessarily slow
+WARNING: Snappy compression is not enabled
+------------------------------------------------
+
+                               Compactions
+Level  Files Size(MB) Time(sec) Read(MB) Write(MB)
+--------------------------------------------------
+
+fillrandom   :     300.692 micros/op;    3.2 MB/s
+readrandom   :      21.125 micros/op; (1000000 of 1000000 found)
+
+                               Compactions
+Level  Files Size(MB) Time(sec) Read(MB) Write(MB)
+--------------------------------------------------
+  0        5       20        26        0      1018
+  1       11       21        68     1526      1488
+  2      126      235       154     3712      3557
+  3      230      473        40     1055       979
+
+compact      : 60183755.000 micros/op;
+compact      :   39942.000 micros/op;
+compact      :   39590.000 micros/op;
+
+                               Compactions
+Level  Files Size(MB) Time(sec) Read(MB) Write(MB)
+--------------------------------------------------
+  0        0        0        26        0      1019
+  1        0        0        70     1568      1530
+  2        0        0       166     3992      3831
+  3      319      649        80     2058      1888
+
+LevelDB:    version 1.20
+Date:       Fri Nov 23 15:15:53 2018
+CPU:        4 * Intel(R) Core(TM) i5-7500 CPU @ 3.40GHz
+CPUCache:   6144 KB
+Keys:       16 bytes each
+Values:     1000 bytes each (500 bytes after compression)
+Entries:    1000000
+RawSize:    968.9 MB (estimated)
+FileSize:   492.1 MB (estimated)
+WARNING: Optimization is disabled: benchmarks unnecessarily slow
+WARNING: Assertions are enabled; benchmarks unnecessarily slow
+WARNING: Snappy compression is not enabled
+------------------------------------------------
+
+                               Compactions
+Level  Files Size(MB) Time(sec) Read(MB) Write(MB)
+--------------------------------------------------
+
+fillrandom   :     300.692 micros/op;    3.2 MB/s
+readrandom   :      21.125 micros/op; (1000000 of 1000000 found)
+
+                               Compactions
+Level  Files Size(MB) Time(sec) Read(MB) Write(MB)
+--------------------------------------------------
+  0        5       20        26        0      1018
+  1       11       21        68     1526      1488
+  2      126      235       154     3712      3557
+  3      230      473        40     1055       979
+
+compact      : 60183755.000 micros/op;
+compact      :   39942.000 micros/op;
+compact      :   39590.000 micros/op;
+
+                               Compactions
+Level  Files Size(MB) Time(sec) Read(MB) Write(MB)
+--------------------------------------------------
+  0        0        0        26        0      1019
+  1        0        0        70     1568      1530
+  2        0        0       166     3992      3831
+  3      319      649        80     2058      1888
+
+daniel@daniel-MS-7A74:~/projects/leveldb_improvement/build$ ./db_bench
+LevelDB:    version 1.20
+Date:       Fri Nov 23 15:23:29 2018
+CPU:        4 * Intel(R) Core(TM) i5-7500 CPU @ 3.40GHz
+CPUCache:   6144 KB
+Keys:       16 bytes each
+Values:     1000 bytes each (500 bytes after compression)
+Entries:    1000000
+RawSize:    968.9 MB (estimated)
+FileSize:   492.1 MB (estimated)
+WARNING: Optimization is disabled: benchmarks unnecessarily slow
+WARNING: Assertions are enabled; benchmarks unnecessarily slow
+WARNING: Snappy compression is not enabled
+------------------------------------------------
+
+                               Compactions
+Level  Files Size(MB) Time(sec) Read(MB) Write(MB)
+--------------------------------------------------
+
+fillrandom   :     301.226 micros/op;    3.2 MB/s
+readrandom   :      21.103 micros/op; (1000000 of 1000000 found)
+
+                               Compactions
+Level  Files Size(MB) Time(sec) Read(MB) Write(MB)
+--------------------------------------------------
+  0        5       20        27        0      1018
+  1       12       23        67     1522      1484
+  2      125      237       155     3732      3578
+  3      229      470        41     1050       975
+
+compact      : 60504123.000 micros/op;
+compact      :   39219.000 micros/op;
+compact      :   40685.000 micros/op;
+
+                               Compactions
+Level  Files Size(MB) Time(sec) Read(MB) Write(MB)
+--------------------------------------------------
+  0        0        0        27        0      1019
+  1        0        0        69     1567      1528
+  2        0        0       168     4024      3863
+  3      319      649        81     2044      1874

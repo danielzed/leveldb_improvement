@@ -1,0 +1,131 @@
+使用二分法判断level层是否与level+1层有不overlap的文件。
+写放大比起顺序搜索提高了很多？？？这是为什么，预测这个搜索方法是不会影响写放大的，但结果与预测相反。
+compact 704次
+
+LevelDB:    version 1.20
+Date:       Fri Nov 23 11:22:05 2018
+CPU:        4 * Intel(R) Core(TM) i5-7500 CPU @ 3.40GHz
+CPUCache:   6144 KB
+Keys:       16 bytes each
+Values:     1000 bytes each (500 bytes after compression)
+Entries:    1000000
+RawSize:    968.9 MB (estimated)
+FileSize:   492.1 MB (estimated)
+WARNING: Optimization is disabled: benchmarks unnecessarily slow
+WARNING: Assertions are enabled; benchmarks unnecessarily slow
+WARNING: Snappy compression is not enabled
+------------------------------------------------
+
+                               Compactions
+Level  Files Size(MB) Time(sec) Read(MB) Write(MB)
+--------------------------------------------------
+
+
+fillrandom   :     310.500 micros/op;    3.1 MB/s
+readrandom   :      11.629 micros/op; (1000000 of 1000000 found)
+
+                               Compactions
+Level  Files Size(MB) Time(sec) Read(MB) Write(MB)
+--------------------------------------------------
+  0        1        4        26        0      1018
+  1       19       25        70     1565      1525
+  2      136      267       175     4113      3931
+  3      244      479         6      189       168
+
+
+compact      : 61484331.000 micros/op;
+compact      :   38380.000 micros/op;
+compact      :   39696.000 micros/op;
+
+                               Compactions
+Level  Files Size(MB) Time(sec) Read(MB) Write(MB)
+--------------------------------------------------
+  0        0        0        26        0      1019
+  1        0        0        72     1595      1555
+  2        0        0       188     4420      4230
+  3      324      649        46     1192      1052
+
+
+LevelDB:    version 1.20
+Date:       Fri Nov 23 14:53:14 2018
+CPU:        4 * Intel(R) Core(TM) i5-7500 CPU @ 3.40GHz
+CPUCache:   6144 KB
+Keys:       16 bytes each
+Values:     1000 bytes each (500 bytes after compression)
+Entries:    1000000
+RawSize:    968.9 MB (estimated)
+FileSize:   492.1 MB (estimated)
+WARNING: Optimization is disabled: benchmarks unnecessarily slow
+WARNING: Assertions are enabled; benchmarks unnecessarily slow
+WARNING: Snappy compression is not enabled
+------------------------------------------------
+
+                               Compactions
+Level  Files Size(MB) Time(sec) Read(MB) Write(MB)
+--------------------------------------------------
+
+fillrandom   :     300.948 micros/op;    3.2 MB/s
+readrandom   :      21.417 micros/op; (1000000 of 1000000 found)
+
+                               Compactions
+Level  Files Size(MB) Time(sec) Read(MB) Write(MB)
+--------------------------------------------------
+  0        5       20        27        0      1018
+  1       12       16        70     1546      1508
+  2       95      168       168     3977      3802
+  3      273      545        15      481       426
+
+compact      : 50733530.000 micros/op;
+compact      :   56005.000 micros/op;
+compact      :   25597.000 micros/op;
+
+                               Compactions
+Level  Files Size(MB) Time(sec) Read(MB) Write(MB)
+--------------------------------------------------
+  0        0        0        27        0      1019
+  1        0        0        72     1583      1544
+  2        0        0       177     4186      4005
+  3      326      649        50     1380      1230
+
+
+LevelDB:    version 1.20
+Date:       Fri Nov 23 15:00:58 2018
+CPU:        4 * Intel(R) Core(TM) i5-7500 CPU @ 3.40GHz
+CPUCache:   6144 KB
+Keys:       16 bytes each
+Values:     1000 bytes each (500 bytes after compression)
+Entries:    1000000
+RawSize:    968.9 MB (estimated)
+FileSize:   492.1 MB (estimated)
+WARNING: Optimization is disabled: benchmarks unnecessarily slow
+WARNING: Assertions are enabled; benchmarks unnecessarily slow
+WARNING: Snappy compression is not enabled
+------------------------------------------------
+
+                               Compactions
+Level  Files Size(MB) Time(sec) Read(MB) Write(MB)
+--------------------------------------------------
+
+fillrandom   :     311.998 micros/op;    3.1 MB/s
+readrandom   :      15.320 micros/op; (1000000 of 1000000 found)
+
+                               Compactions
+Level  Files Size(MB) Time(sec) Read(MB) Write(MB)
+--------------------------------------------------
+  0        2        8        28        0      1018
+  1       16       23        71     1559      1520
+  2      124      229       178     4223      4040
+  3      254      505         9      274       244
+
+compact      : 56113056.000 micros/op;
+compact      :   30878.000 micros/op;
+compact      :   40709.000 micros/op;
+
+                               Compactions
+Level  Files Size(MB) Time(sec) Read(MB) Write(MB)
+--------------------------------------------------
+  0        0        0        28        0      1019
+  1        0        0        72     1591      1551
+  2        0        0       190     4495      4304
+  3      324      649        47     1225      1086
+

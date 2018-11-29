@@ -1,0 +1,40 @@
+LevelDB:    version 1.20
+Date:       Fri Nov 23 16:09:53 2018
+CPU:        4 * Intel(R) Core(TM) i5-7500 CPU @ 3.40GHz
+CPUCache:   6144 KB
+Keys:       16 bytes each
+Values:     1000 bytes each (500 bytes after compression)
+Entries:    1000000
+RawSize:    968.9 MB (estimated)
+FileSize:   492.1 MB (estimated)
+WARNING: Optimization is disabled: benchmarks unnecessarily slow
+WARNING: Assertions are enabled; benchmarks unnecessarily slow
+WARNING: Snappy compression is not enabled
+------------------------------------------------
+
+                               Compactions
+Level  Files Size(MB) Time(sec) Read(MB) Write(MB)
+--------------------------------------------------
+
+fillrandom   :     667.415 micros/op;    1.5 MB/s
+readrandom   :      12.345 micros/op; (1000000 of 1000000 found)
+
+                               Compactions
+Level  Files Size(MB) Time(sec) Read(MB) Write(MB)
+--------------------------------------------------
+  0        1        4        26        0      1018
+  1      113       57       172     1597      1551
+  2      324      311       389     5839      5626
+  3      382      388         0        0         0
+
+compact      : 81169643.000 micros/op;
+compact      :   39876.000 micros/op;
+compact      :   42695.000 micros/op;
+
+                               Compactions
+Level  Files Size(MB) Time(sec) Read(MB) Write(MB)
+--------------------------------------------------
+  0        0        0        26        0      1019
+  1        0        0       178     1658      1612
+  2        0        0       416     6241      6020
+  3      326      649        38      924       821

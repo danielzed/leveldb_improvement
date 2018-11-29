@@ -38,7 +38,6 @@
 namespace leveldb {
 
 const int kNumNonTableCacheFiles = 10;
-//执行writebatck的工作者，多线程
 // Information kept for every waiting writer
 struct DBImpl::Writer {
   Status status;
@@ -49,9 +48,6 @@ struct DBImpl::Writer {
 
   explicit Writer(port::Mutex* mu) : cv(mu) { }
 };
-//compaction表示压缩任务？
-//会删除所有seqnum特别小的entry
-//有输出
 struct DBImpl::CompactionState {
   Compaction* const compaction;
 
@@ -84,15 +80,12 @@ struct DBImpl::CompactionState {
         total_bytes(0) {
   }
 };
-//把ptr指向的值限定在maxval和minval之间
 // Fix user-supplied options to be reasonable
 template <class T, class V>
 static void ClipToRange(T* ptr, V minvalue, V maxvalue) {
   if (static_cast<V>(*ptr) > maxvalue) *ptr = maxvalue;
   if (static_cast<V>(*ptr) < minvalue) *ptr = minvalue;
 }
-//sanitize消毒
-//对options src进行设置（范围约束，filter设置）
 Options SanitizeOptions(const std::string& dbname,
                         const InternalKeyComparator* icmp,
                         const InternalFilterPolicy* ipolicy,
@@ -731,9 +724,12 @@ void DBImpl::BackgroundCompaction() {
   Status status;
   if (c == nullptr) {
     // Nothing to do
-  } else if (!is_manual && c->IsTrivialMove()) {
+    /*!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1
+    edit by zdn*/
+  // } else if (!is_manual && c->IsTrivialMove()) {
+  } else if (!is_manual) {
     // Move file to next level
-    assert(c->num_input_files(0) == 1);
+    //assert(c->num_input_files(0) == 1);
     FileMetaData* f = c->input(0, 0);
     c->edit()->DeleteFile(c->level(), f->number);
     c->edit()->AddFile(c->level() + 1, f->number, f->file_size,
@@ -1011,15 +1007,27 @@ Status DBImpl::DoCompactionWork(CompactionState* compact) {
       }
       compact->current_output()->largest.DecodeFrom(key);
       compact->builder->Add(key, input->value());
-
+      
+/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~`
+edit by zdn 11.23 ,alter filesize by the level
+根据level不同，filesize由大变小
+*/
       // Close output file if it is big enough
+      // if (compact->builder->FileSize() >=
+      //     compact->compaction->MaxOutputFileSize()) {
+      //   status = FinishCompactionOutputFile(compact, input);
+      //   if (!status.ok()) {
+      //     break;
+      //   }
+      // }
       if (compact->builder->FileSize() >=
-          compact->compaction->MaxOutputFileSize()) {
+          compact->compaction->MaxOutputFileSize(compact->compaction->level())) {
         status = FinishCompactionOutputFile(compact, input);
         if (!status.ok()) {
           break;
         }
       }
+      /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
     }
 
     input->Next();
