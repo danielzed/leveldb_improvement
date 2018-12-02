@@ -1317,52 +1317,7 @@ Compaction* VersionSet::PickCompaction() {
     assert(level >= 0);
     assert(level+1 < config::kNumLevels);
     c = new Compaction(options_, level);
-#if 0
-    
-/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-      edit by zdn,11.23,choose which leveli file to compact,
-      how to determine the file not overlap with leveli+1
-      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-    for(size_t i = 0; i<current_->files_[level].size(); i++)
-    {
-      FileMetaData* f = current_->files_[level][i];
-      bool flag_find = false;
-      int li = 0,ri = current_->files_[level+1].size()-1;
-      while(li <= ri)
-      {
-        int mid = (li+ri)>>1;
-        FileMetaData* mf = current_->files_[level+1][mid];
-        if(icmp_.Compare(mf->smallest,f->largest)>=0)
-        {
-          if(li == ri)
-          {
-            flag_find = true;
-            break;
-          }
-          ri = mid;
-        }
-        else if(icmp_.Compare(mf->largest,f->smallest)<=0)
-        {
-          if(li == ri)
-          {
-            flag_find = true;
-            break;
-          }
-          li = mid+1;
-        }
-        else{
-          break;
-        }
-        
-      }
-      if(flag_find)
-      {
-        c->inputs_[0].push_back(f);
-      }
-    }
-/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-#endif
+
 #if 1
     
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

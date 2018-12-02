@@ -726,8 +726,8 @@ void DBImpl::BackgroundCompaction() {
     // Nothing to do
     /*!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1
     edit by zdn*/
-  // } else if (!is_manual && c->IsTrivialMove()) {
-  } else if (!is_manual) {
+   } else if (!is_manual && c->IsTrivialMove()) {
+  //} else if (!is_manual) {
     // Move file to next level
     //assert(c->num_input_files(0) == 1);
     FileMetaData* f = c->input(0, 0);
