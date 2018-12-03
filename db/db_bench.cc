@@ -77,8 +77,10 @@ static const char* FLAGS_benchmarks =
     ;
 
 
+time_t curtime;
+    
 // Number of key/values to place in database
-static int FLAGS_num = 100000;
+static int FLAGS_num = 500000;
 
 // Number of read operations to do.  If negative, do FLAGS_num reads.
 static int FLAGS_reads = -1;
@@ -136,6 +138,7 @@ namespace {
 leveldb::Env* g_env = nullptr;
 
 static double ZIPFIAN_CONSTANT = 0.99;
+static unsigned int cur_time = (unsigned)time(NULL);
 class ZipfGenerator {
 private:
   long items;
@@ -145,19 +148,20 @@ private:
   long countforzeta;
   bool allowitemcountdecrease = false;
 public:
-  ZipfGenerator(long min,long max,double c,double z=0)
+  ZipfGenerator(long min,long max,double zipfian_const,double z=0)
   {
+    zipfianconstant = zipfian_const;
     z = zetastatic(max-min+1,zipfianconstant);
     items = max-min+1;
     base = min;
-    zipfianconstant = c;
     theta = zipfianconstant;
     zeta2theta = zeta(2,theta);
     alpha = 1.0/(1.0-theta);
     zetan = z;
     countforzeta = items;
     eta = (1-pow(2.0/items,1-theta))/(1-zeta2theta/zetan);
-    srand(time(0));
+    printf("%d\n",cur_time);
+    srand(cur_time);
   }
   double zeta(long n,double thetaVal)
   {
@@ -521,6 +525,12 @@ class Benchmark {
   }
 //cur_time 当前第几次，影响log的名字
   void Run() {
+    #ifdef FIRSTTIME
+    #undef FIRSTTIME
+    #define SECONDTIME
+    #else
+    #define FIRSTTIME
+    #endif
     PrintHeader();
     
     Open();
@@ -641,6 +651,7 @@ class Benchmark {
  private:
   struct ThreadArg {
     Benchmark* bm;
+
     SharedState* shared;
     ThreadState* thread;
     void (Benchmark::*method)(ThreadState*);
@@ -850,6 +861,17 @@ class Benchmark {
     WriteBatch batch;
     Status s;
     int64_t bytes = 0;
+    #ifdef FIRSTTIME
+    char data_log_path[100];
+    
+    #if 0
+    snprintf(data_log_path,100,"/home/daniel/projects/leveldb_improvement/data%s",ctime(&curtime));
+    #else
+    snprintf(data_log_path,100,"/home/daniel/projects/leveldb_improvement/data");
+    #endif
+    FILE* data_log_ = fopen(data_log_path,"w+");
+    Logger* data_log = new PosixLogger(data_log_,pthread_self);
+    #endif
     for (int i = 0; i < num_; i += entries_per_batch_) {
       batch.Clear();
       for (int j = 0; j < entries_per_batch_; j++) {
@@ -857,6 +879,11 @@ class Benchmark {
         const int k = seq ? i+j : (zipfgen.nextVal(FLAGS_num));
         char key[100];
         snprintf(key, sizeof(key), "%016d", k);
+        if(i<5)
+          printf("key  is %s:\n",key);
+        #ifdef FIRSTTIME
+        Log(data_log,"key:%s",key);
+        #endif
         batch.Put(key, gen.Generate(value_size_));
         bytes += value_size_ + strlen(key);
         thread->stats.FinishedSingleOp();
@@ -867,6 +894,9 @@ class Benchmark {
         exit(1);
       }
     }
+    #ifdef FIRSTTIME
+    fclose(data_log_);
+    #endif
     thread->stats.AddBytes(bytes);
   }
 
@@ -1053,6 +1083,7 @@ class Benchmark {
 }  // namespace leveldb
 
 int main(int argc, char** argv) {
+  time(&curtime);
   FLAGS_write_buffer_size = leveldb::Options().write_buffer_size;
   FLAGS_max_file_size = leveldb::Options().max_file_size;
   FLAGS_block_size = leveldb::Options().block_size;
@@ -1113,6 +1144,7 @@ int main(int argc, char** argv) {
       FLAGS_db = default_db_path.c_str();
   }
   leveldb::Benchmark benchmark;
+  benchmark.Run();
   benchmark.Run();
   return 0;
 }

@@ -1318,7 +1318,8 @@ Compaction* VersionSet::PickCompaction() {
     assert(level+1 < config::kNumLevels);
     c = new Compaction(options_, level);
 
-#if 1
+#
+#ifdef SECONDTIME
     
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
       edit by zdn,11.23,choose which leveli file to compact,
